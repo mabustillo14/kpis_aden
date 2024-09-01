@@ -107,13 +107,35 @@ SELECT
 FROM `<data_mart>.<dataset>.dm_sale_order` so
 INNER JOIN `<data_mart>.<dataset>.dm_invoice` i ON i.order_id = so.order_id
 INNER JOIN `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
-GROUP BY p.product_id, so.status
+GROUP BY p.product_id
 HAVING so.status = 'completada'
 ORDER BY total_sales_amount desc, total_sales desc
 ```
 
 2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado, junto con el desglose de los pagos y sus respectivos estados.
+
+```
+/*invoice_payments*/
+CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.invoice_payments` as
+SELECT 
+  i.invoice_id,
+  i.status_invoice, 
+  SUM(i.total_amount) AS total_invoice,
+  SUM(IFNULL(p.amount, 0)) AS total_paid
+FROM 
+    `<data_mart>.<dataset>.dm_invoice` i
+LEFT JOIN 
+    `<data_mart>.<dataset>.dm_payment` p 
+ON 
+    i.invoice_id = p.invoice_id
+GROUP BY 
+    i.status_invoice;
+```
+
+
 3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las ventas con el monto efectivamente pagado por los clientes.
+
+
 
 4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor cantidad de ventas.
 
