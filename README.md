@@ -3,8 +3,17 @@ El desarrollo de una solución que permita extraer y procesar datos para aliment
 <br>
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
 
+<br>
+A continuación, se describen las principales entidades y sus relaciones:
+- **Clientes:** Se registran los datos básicos de cada cliente, como nombre, teléfono, dirección y país.
+- **Usuarios:** Los empleados que interactúan con el sistema están registrados como usuarios. Cada usuario tiene un nombre, correo electrónico y un rol específico (por ejemplo, vendedor o administrador).
+- **Órdenes de Venta:** Los usuarios pueden generar órdenes de venta en el sistema. Cada orden de venta incluye la fecha de creación, el estado (pendiente, completada, cancelada) y el monto total.
+- **Productos:** El sistema permite gestionar los productos, cada uno con un nombre, un precio y una asignación a una categoría específica.
+- **Categorías de Productos:** Los productos están organizados en categorías. Cada categoría posee un nombre y una descripción.
+- **Facturación:** Por cada orden de venta se genera una factura, la cual incluye la fecha de emisión, el monto total, la fecha de vencimiento y el estado de la factura (pagada, pendiente, vencida).
+
 ## KPIs
-Con la información descrita, se plantea obtener tablas para obteners los siguientes indicadores clave:
+Con la información descrita, se plantea obtener tablas para los siguientes indicadores clave:
 1) **Cantidad de Ventas y Productos Más Vendidos:** Visualizar el número total de
 ventas realizadas y destacar los productos con mayor demanda.
 2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado,
@@ -39,7 +48,13 @@ Para el data mart, se deben ejecutar las siguientes query:
 ```
 /*dm_sale_order*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` () as
-SELECT order_id, user_id, order_date, status, total_amount, invoice_id
+SELECT
+  `order_id`,
+  `user_id`,
+  `order_date`,
+  `status`,
+  `total_amount`,
+  `invoice_id`,
 FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
 ```
 
@@ -47,7 +62,14 @@ FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
 ```
 /*dm_invoice*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` () as
-SELECT invoice_id, invoice_date, total_amount, due_date, status_invoice, product_id, payment_id
+SELECT
+  `invoice_id`,
+  `invoice_date`,
+  `total_amount`,
+  `due_date`,
+  `status_invoice`,
+  `product_id`,
+  `payment_id`,
 FROM `<proyect_input>.<dataset_input>.INVOICE`
 ```
 
@@ -55,7 +77,10 @@ FROM `<proyect_input>.<dataset_input>.INVOICE`
 ```
 /*dm_payment*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` () as
-SELECT invoice_id, amount, status_payment
+SELECT
+  `invoice_id`,
+  `amount`,
+  `status_payment`
 FROM `<proyect_input>.<dataset_input>.PAYMENT`
 ```
 
@@ -63,7 +88,9 @@ FROM `<proyect_input>.<dataset_input>.PAYMENT`
 ```
 /*dm_customer*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` () as
-SELECT customer_id, name
+SELECT
+  `customer_id`,
+  `name`,
 FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 ```
 
@@ -74,4 +101,6 @@ CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` () as
 SELECT customer_id, name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
+
+## <br>Tablas para responder a los KPIs 
 
