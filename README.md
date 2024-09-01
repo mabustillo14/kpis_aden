@@ -3,6 +3,19 @@ El desarrollo de una solución que permita extraer y procesar datos para aliment
 <br>
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
 
+## KPIs
+Con la información descrita, se plantea obtener tablas para obteners los siguientes indicadores clave:
+1) **Cantidad de Ventas y Productos Más Vendidos:** Visualizar el número total de
+ventas realizadas y destacar los productos con mayor demanda.
+2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado,
+junto con el desglose de los pagos y sus respectivos estados.
+3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las
+ventas con el monto efectivamente pagado por los clientes.
+4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor
+cantidad de ventas.
+5) **Detalle de Ventas y Facturas:** Proveer un desglose detallado de cada venta y sus
+correspondientes facturas.
+
 ## Enfoque Metodológico
 Consideraciones previas para la resolución:
 - Las consultas están diseñadas para ejecutarse en Google Cloud Platform, considerando la sintaxis específica de este entorno.
@@ -11,9 +24,12 @@ Consideraciones previas para la resolución:
 - Todas las soluciones se han implementado utilizando SQL.
 
 ## <br>DATA MART ⚙️
-Para poder inicializar la arquitectura del Data Mart para resolver, se consideraron los siguientes aspectos:
+Para poder inicializar la arquitectura del Data Mart para responder los KPIs planteados, se consideraron los siguientes aspectos:
 - Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_mart>`.
 - Se considero un _esquema de copo de nieve_ para el Data Mart:
+
+<br>
+
 ![Arquitectura de la base de datos](/images/data_mart.JPG)
 
 <br>
@@ -58,3 +74,4 @@ CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` () as
 SELECT customer_id, name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
+
