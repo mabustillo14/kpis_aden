@@ -1,4 +1,4 @@
-##🙌 Challenge Técnico
+## 🙌 Challenge Técnico
 El desarrollo de una solución que permita extraer y procesar datos para alimentar un dashboard visual que refleje los indicadores clave planteados en el desafío. Se prioriza la optimización del rendimiento del sistema, evitando consultas en tiempo real sobre la base de datos operativa para garantizar una experiencia de usuario fluida y eficiente.
 <br>
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
@@ -16,7 +16,7 @@ A continuación, se describen las principales entidades y sus relaciones:
 ## <br>🔧 Enfoque Metodológico 
 - Las consultas están diseñadas para ejecutarse en Google Cloud Platform, considerando la sintaxis específica de este entorno.
 - Todas los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
-- Se ha utilizado la base de datos pública Northwind como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
+- En algunos casos se ha utilizado la **base de datos pública Northwind** como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
 - Todas las soluciones se han implementado utilizando SQL.
 
 ## <br>💡 DATA MART 
@@ -110,6 +110,9 @@ GROUP BY p.product_id
 HAVING so.status = 'completada'
 ORDER BY total_sales_amount desc, total_sales desc
 ```
+ Output esperado
+ ![output_sales_products](/images/output_sales_products.JPG)
+
 
 2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado, junto con el desglose de los pagos y sus respectivos estados.
 
@@ -165,6 +168,9 @@ LEFT JOIN
 GROUP BY c.user_id
 ORDER BY SUM(IFNULL(so.total_amount, 0)) desc
 ```
+
+Output esperado:
+ ![output_sales_products](/images/output_user_sales_ranking.JPG)
 
 
 5) **Detalle de Ventas y Facturas:** Proveer un desglose detallado de cada venta y sus correspondientes facturas.
