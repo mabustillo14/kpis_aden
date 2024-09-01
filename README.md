@@ -1,6 +1,8 @@
 ## 🙌 Challenge Técnico
 El desarrollo de una solución que permita extraer y procesar datos para alimentar un dashboard visual que refleje los indicadores clave planteados en el desafío. Se prioriza la optimización del rendimiento del sistema, evitando consultas en tiempo real sobre la base de datos operativa para garantizar una experiencia de usuario fluida y eficiente.
+
 <br>
+
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
 
 A continuación, se describen las principales entidades y sus relaciones:
@@ -110,7 +112,7 @@ GROUP BY p.product_id
 HAVING so.status = 'completada'
 ORDER BY total_sales_amount desc, total_sales desc
 ```
- Output esperado
+ Output esperado: <br>
  ![output_sales_products](/images/output_sales_products.JPG)
 
 
@@ -169,7 +171,7 @@ GROUP BY c.user_id
 ORDER BY SUM(IFNULL(so.total_amount, 0)) desc
 ```
 
-Output esperado:
+Output esperado: <br>
  ![output_sales_products](/images/output_user_sales_ranking.JPG)
 
 
