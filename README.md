@@ -13,11 +13,12 @@ A continuación, se describen las principales entidades y sus relaciones:
 - **Productos:** El sistema permite gestionar los productos, cada uno con un nombre, un precio y una asignación a una categoría específica.
 - **Categorías de Productos:** Los productos están organizados en categorías. Cada categoría posee un nombre y una descripción.
 - **Facturación:** Por cada orden de venta se genera una factura, la cual incluye la fecha de emisión, el monto total, la fecha de vencimiento y el estado de la factura (pagada, pendiente, vencida).
+- **Pagos:** Los clientes pueden realizar pagos parciales o totales para una factura específica. Cada pago registra la fecha, el monto, el método de pago (como tarjeta de crédito, transferencia bancaria), y el estado (pagado, fallido, pendiente).
 
 
 ## <br>🔧 Enfoque Metodológico 
 - Las consultas están diseñadas para ejecutarse en **Google Cloud Platform > BigQuery**, considerando la sintaxis específica de este entorno.
-- Todas los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
+- Se considera que todos los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
 - En algunos casos se ha utilizado la **base de datos pública Northwind** como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
 - Todas las soluciones se han implementado utilizando **SQL**.
 
@@ -33,7 +34,7 @@ A continuación, se describen las principales entidades y sus relaciones:
 
 Para crear el data mart, se deben ejecutar las siguientes query:
 
-1) Crear la tabla <em>dm_sale_order<em>
+1) Crear la tabla ***dm_sale_order***
 ```
 /*dm_sale_order*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` as
@@ -41,13 +42,13 @@ SELECT
   `order_id`,
   `user_id`,
   `order_date`,
-  `status`,
+  `status` as order_status,
   `total_amount`,
   `invoice_id`,
 FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
 ```
 
-2) Crear la tabla <em>dm_invoice<em>
+2) Crear la tabla ***dm_invoice***
 ```
 /*dm_invoice*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` as
@@ -62,18 +63,18 @@ SELECT
 FROM `<proyect_input>.<dataset_input>.INVOICE`
 ```
 
-3) Crear la tabla <em>dm_payment<em>
+3) Crear la tabla ***dm_payment***
 ```
 /*dm_payment*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` as
 SELECT
   `invoice_id`,
-  `amount`,
+  `amount_paid`,
   `status_payment`
 FROM `<proyect_input>.<dataset_input>.PAYMENT`
 ```
 
-4) Crear la tabla <em>dm_customer<em>
+4) Crear la tabla ***dm_customer***
 ```
 /*dm_customer*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` as
@@ -83,12 +84,12 @@ SELECT
 FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 ```
 
-5) Crear la tabla <em>dm_product<em>
+5) Crear la tabla ***dm_product***
 ```
 /*dm_product*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` as
 SELECT
-  customer_id,
+  product_id,
   name as product_name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
@@ -113,7 +114,7 @@ INNER JOIN
 INNER JOIN
   `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
 GROUP BY p.product_id
-HAVING so.status = 'completada'
+HAVING so.order_status = 'completada'
 ORDER BY total_sales_amount desc, total_sales desc
 ```
  Output esperado: <br>
@@ -129,7 +130,7 @@ SELECT
     so.order_id,
     i.invoice_id
     so.total_amount AS total_sales_amount,
-    SUM(IFNULL(p.amount, 0)) AS total_paid_amount,
+    SUM(IFNULL(p.amount_paid, 0)) AS total_paid_amount,
     so.total_amount - SUM(IFNULL(p.amount, 0)) AS unpaid_amount,
     i.status_invoice AS invoice_status
 FROM
@@ -151,7 +152,7 @@ SELECT
   i.invoice_id,
   i.status_invoice, 
   SUM(i.total_amount) AS total_invoice,
-  SUM(IFNULL(p.amount, 0)) AS total_paid
+  SUM(IFNULL(p.amount_paid, 0)) AS total_paid
 FROM 
     `<data_mart>.<dataset>.dm_invoice` i
 LEFT JOIN 
@@ -204,5 +205,5 @@ JOIN
 
 ## Documentación
 
-Todos los detalles de cada uno de los parámetros que devuelven las tablas para resolver los KPIs se encuentran la documentación.
+Todos los detalles de cada uno de los parámetros que devuelven las tablas para resolver los KPIs se encuentran la [documentación](https://github.com/mabustillo14/kpis_aden/blob/main/Documentacion.pdf)
 
