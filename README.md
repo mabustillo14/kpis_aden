@@ -13,18 +13,6 @@ A continuación, se describen las principales entidades y sus relaciones:
 - **Categorías de Productos:** Los productos están organizados en categorías. Cada categoría posee un nombre y una descripción.
 - **Facturación:** Por cada orden de venta se genera una factura, la cual incluye la fecha de emisión, el monto total, la fecha de vencimiento y el estado de la factura (pagada, pendiente, vencida).
 
-## KPIs
-Con la información descrita, se plantea obtener tablas para los siguientes indicadores clave:
-1) **Cantidad de Ventas y Productos Más Vendidos:** Visualizar el número total de
-ventas realizadas y destacar los productos con mayor demanda.
-2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado,
-junto con el desglose de los pagos y sus respectivos estados.
-3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las
-ventas con el monto efectivamente pagado por los clientes.
-4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor
-cantidad de ventas.
-5) **Detalle de Ventas y Facturas:** Proveer un desglose detallado de cada venta y sus
-correspondientes facturas.
 
 ## Enfoque Metodológico
 Consideraciones previas para la resolución:
@@ -103,14 +91,31 @@ SELECT customer_id, name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
 
-## <br>Tablas para responder a los KPIs 
+## <br> KPIs 
+Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_kpis>`. Con la información descrita, se plantea obtener tablas para los siguientes indicadores clave:
 
-Se debe considerar los siguientes aspectos:
-- Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_kpis>`.
+1) **Cantidad de Ventas y Productos Más Vendidos:** Visualizar el número total de ventas realizadas y destacar los productos con mayor demanda.
 
-Para construir las tablas que responden a los KPIs planteados, se deben ejecutar las siguientes querys
+```
+/*sales_products*/
+CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_products` as
+SELECT 
+    p.product_id,
+    p.name AS product_name,
+    COUNT(so.order_id) AS total_sales,
+    SUM(so.total_amount) AS total_sales_amount
+FROM `<data_mart>.<dataset>.dm_sale_order` so
+INNER JOIN `<data_mart>.<dataset>.dm_invoice` i ON i.order_id = so.order_id
+INNER JOIN `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
+GROUP BY p.product_id, so.status
+HAVING so.status = 'completada'
+ORDER BY total_sales_amount desc, total_sales desc
+```
 
-4) Ranking de Usuarios por Ventas
+2) **Monto Facturado y Estado de los Pagos:** Monitorear el monto total facturado, junto con el desglose de los pagos y sus respectivos estados.
+3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las ventas con el monto efectivamente pagado por los clientes.
+
+4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor cantidad de ventas.
 
 ```
 /*user_sales_ranking*/
@@ -129,7 +134,7 @@ ORDER BY COALESCE(SUM(so.total_amount),0) desc
 ```
 
 
-5) Detalle de Ventas y Facturas
+5) **Detalle de Ventas y Facturas:** Proveer un desglose detallado de cada venta y sus correspondientes facturas.
 ```
 /*sales_invoices_detail*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_invoices_detail` as
