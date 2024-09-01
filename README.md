@@ -1,4 +1,4 @@
-## Descripción Prueba Técnica
+##🙌 Challenge Técnico
 El desarrollo de una solución que permita extraer y procesar datos para alimentar un dashboard visual que refleje los indicadores clave planteados en el desafío. Se prioriza la optimización del rendimiento del sistema, evitando consultas en tiempo real sobre la base de datos operativa para garantizar una experiencia de usuario fluida y eficiente.
 <br>
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
@@ -13,14 +13,13 @@ A continuación, se describen las principales entidades y sus relaciones:
 - **Facturación:** Por cada orden de venta se genera una factura, la cual incluye la fecha de emisión, el monto total, la fecha de vencimiento y el estado de la factura (pagada, pendiente, vencida).
 
 
-## <br>Enfoque Metodológico
-Consideraciones previas para la resolución:
+## <br>🔧 Enfoque Metodológico 
 - Las consultas están diseñadas para ejecutarse en Google Cloud Platform, considerando la sintaxis específica de este entorno.
 - Todas los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
 - Se ha utilizado la base de datos pública Northwind como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
 - Todas las soluciones se han implementado utilizando SQL.
 
-## <br>DATA MART ⚙️
+## <br>💡 DATA MART 
 Para poder inicializar la arquitectura del Data Mart para responder los KPIs planteados, se consideraron los siguientes aspectos:
 - Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_mart>`.
 - Se considero un _esquema de copo de nieve_ para el Data Mart:
@@ -91,7 +90,7 @@ SELECT customer_id, name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
 
-## <br> KPIs 
+## <br>📊 KPIs 
 Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_kpis>`. Con la información descrita, se plantea obtener tablas para los siguientes indicadores clave:
 
 1) **Cantidad de Ventas y Productos Más Vendidos:** Visualizar el número total de ventas realizadas y destacar los productos con mayor demanda.
@@ -190,5 +189,5 @@ JOIN
 
 ## Documentación
 
-Todos los detalles de cada uno de los parámetros que devuelven las tablas para resolver los KPIs, se encuentran la documentación.
+Todos los detalles de cada uno de los parámetros que devuelven las tablas para resolver los KPIs se encuentran la documentación.
 
