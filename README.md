@@ -48,7 +48,7 @@ Para el data mart, se deben ejecutar las siguientes query:
 1) Crear la tabla <em>dm_sale_order<em>
 ```
 /*dm_sale_order*/
-CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` () as
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` as
 SELECT
   `order_id`,
   `user_id`,
@@ -62,7 +62,7 @@ FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
 2) Crear la tabla <em>dm_invoice<em>
 ```
 /*dm_invoice*/
-CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` () as
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` as
 SELECT
   `invoice_id`,
   `invoice_date`,
@@ -77,7 +77,7 @@ FROM `<proyect_input>.<dataset_input>.INVOICE`
 3) Crear la tabla <em>dm_payment<em>
 ```
 /*dm_payment*/
-CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` () as
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` as
 SELECT
   `invoice_id`,
   `amount`,
@@ -88,7 +88,7 @@ FROM `<proyect_input>.<dataset_input>.PAYMENT`
 4) Crear la tabla <em>dm_customer<em>
 ```
 /*dm_customer*/
-CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` () as
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` as
 SELECT
   `customer_id`,
   `name`,
@@ -98,27 +98,51 @@ FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 5) Crear la tabla <em>dm_product<em>
 ```
 /*dm_product*/
-CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` () as
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` as
 SELECT customer_id, name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
 
 ## <br>Tablas para responder a los KPIs 
 
+Se debe considerar los siguientes aspectos:
+- Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_kpis>`.
+
 Para construir las tablas que responden a los KPIs planteados, se deben ejecutar las siguientes querys
+
+4) Ranking de Usuarios por Ventas
+
+```
+/*user_sales_ranking*/
+CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.user_sales_ranking` as
+SELECT 
+    c.user_id,
+    c.name AS user_name,
+    COALESCE(COUNT(so.order_id),0) AS total_sales,
+    COALESCE(SUM(so.total_amount),0) AS total_revenue
+FROM
+  `<data_mart>.<dataset>.dm_customer` c
+LEFT JOIN
+  sale_order so ON c.user_id = so.user_id
+GROUP BY c.user_id
+ORDER BY COALESCE(SUM(so.total_amount),0) desc
+```
+
+
 5) Detalle de Ventas y Facturas
 ```
-/*dm_product*/
+/*sales_invoices_detail*/
+CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_invoices_detail` as
 SELECT 
-  `so.order_id`, 
-  `so.order_date`,
-  `so.status` as order_status 
-  `so.total_amount` as order_total_amount, 
-  `i.invoice_id`, 
-  `i.invoice_date`,
-  `i.due_date`,
-  `i.total_amount` AS invoice_total_amount,
-  `i.status_invoice`
+  so.order_id, 
+  so.order_date,
+  so.status as order_status 
+  so.total_amount as order_total_amount, 
+  i.invoice_id, 
+  i.invoice_date,
+  i.due_date,
+  i.total_amount AS invoice_total_amount,
+  i.status_invoice,
 FROM 
     `<data_mart>.<dataset>.dm_sale_order` so
 JOIN 
