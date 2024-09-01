@@ -10,18 +10,51 @@ Consideraciones previas para la resolución:
 - Se ha utilizado la base de datos pública Northwind como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
 - Todas las soluciones se han implementado utilizando SQL.
 
-# <br>DATA MART ⚙️
+## <br>DATA MART ⚙️
 Para poder inicializar la arquitectura del Data Mart para resolver, se consideraron los siguientes aspectos:
 - Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_mart>`.
-- Se considero un _esquema de estrella_ para el Data Mart: 
+- Se considero un _esquema de copo de nieve_ para el Data Mart:
+![Arquitectura de la base de datos](/images/data_mart.JPG)
 
 <br>
-Para construirlo, se deben ejecutar las siguientes query:
+Para el data mart, se deben ejecutar las siguientes query:
 
 1) Crear la tabla <em>dm_sale_order<em>
 ```
 /*dm_sale_order*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` () as
 SELECT order_id, user_id, order_date, status, total_amount, invoice_id
-FROM `<proyect_input>.<dataset_input>.dm_sale_order`
+FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
+```
+
+2) Crear la tabla <em>dm_invoice<em>
+```
+/*dm_invoice*/
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` () as
+SELECT invoice_id, invoice_date, total_amount, due_date, status_invoice, product_id, payment_id
+FROM `<proyect_input>.<dataset_input>.INVOICE`
+```
+
+3) Crear la tabla <em>dm_payment<em>
+```
+/*dm_payment*/
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` () as
+SELECT invoice_id, amount, status_payment
+FROM `<proyect_input>.<dataset_input>.PAYMENT`
+```
+
+4) Crear la tabla <em>dm_customer<em>
+```
+/*dm_customer*/
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` () as
+SELECT customer_id, name
+FROM `<proyect_input>.<dataset_input>.CUSTOMER`
+```
+
+5) Crear la tabla <em>dm_product<em>
+```
+/*dm_product*/
+CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` () as
+SELECT customer_id, name
+FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
