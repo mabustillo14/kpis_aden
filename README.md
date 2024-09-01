@@ -22,9 +22,8 @@ A continuación, se describen las principales entidades y sus relaciones:
 - Todas las soluciones se han implementado utilizando SQL.
 
 ## <br>💡 DATA MART 
-Para poder inicializar la arquitectura del Data Mart para responder los KPIs planteados, se consideraron los siguientes aspectos:
 - Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_mart>`.
-- Se considero un _esquema de copo de nieve_ para el Data Mart:
+- Se considero un ***esquema de copo de nieve*** para la arquitectura del Data Mar Data Mart:
 
 <br>
 
