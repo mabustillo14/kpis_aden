@@ -30,7 +30,7 @@ Para poder inicializar la arquitectura del Data Mart para responder los KPIs pla
 ![Arquitectura de la base de datos](/images/data_mart_diagram.JPG)
 
 <br>
-### Querys para el Data Mart
+
 Para crear el data mart, se deben ejecutar las siguientes query:
 
 1) Crear la tabla <em>dm_sale_order<em>
@@ -118,6 +118,25 @@ ORDER BY total_sales_amount desc, total_sales desc
 /*invoice_payments*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.invoice_payments` as
 SELECT 
+    so.order_id,
+    i.invoice_id
+    so.total_amount AS total_sales_amount,
+    SUM(IFNULL(p.amount, 0)) AS total_paid_amount,
+    so.total_amount - SUM(IFNULL(p.amount, 0)) AS unpaid_amount,
+    i.status_invoice AS invoice_status
+FROM `<data_mart>.<dataset>.dm_sale_order` so
+LEFT JOIN `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id
+LEFT JOIN `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
+GROUP BY so.order_id
+```
+
+
+3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las ventas con el monto efectivamente pagado por los clientes.
+
+```
+/*sales_payments*/
+CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_payments` as
+SELECT 
   i.invoice_id,
   i.status_invoice, 
   SUM(i.total_amount) AS total_invoice,
@@ -125,17 +144,10 @@ SELECT
 FROM 
     `<data_mart>.<dataset>.dm_invoice` i
 LEFT JOIN 
-    `<data_mart>.<dataset>.dm_payment` p 
-ON 
-    i.invoice_id = p.invoice_id
+    `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
 GROUP BY 
     i.status_invoice;
 ```
-
-
-3) **Comparativa de Ventas vs. Pagos Recibidos:** Comparar el monto total de las ventas con el monto efectivamente pagado por los clientes.
-
-
 
 4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor cantidad de ventas.
 
@@ -145,14 +157,14 @@ CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.user_sales_ranking` as
 SELECT 
     c.user_id,
     c.name AS user_name,
-    COALESCE(COUNT(so.order_id),0) AS total_sales,
-    COALESCE(SUM(so.total_amount),0) AS total_revenue
+    SUM(IFNULL(so.order_id, 0)) AS total_sales,
+    SUM(IFNULL(so.total_amount, 0)) AS total_revenue
 FROM
   `<data_mart>.<dataset>.dm_customer` c
 LEFT JOIN
   sale_order so ON c.user_id = so.user_id
 GROUP BY c.user_id
-ORDER BY COALESCE(SUM(so.total_amount),0) desc
+ORDER BY SUM(IFNULL(so.total_amount, 0)) desc
 ```
 
 
@@ -173,8 +185,10 @@ SELECT
 FROM 
     `<data_mart>.<dataset>.dm_sale_order` so
 JOIN 
-    `<data_mart>.<dataset>.dm_invoice` i 
-ON 
-    so.order_id = i.order_id;
+    `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id;
 ```
+
+## Documentación
+
+Todos los detalles de cada uno de los parámetros que devuelven las tablas para resolver los KPIs, se encuentran la documentación.
 
