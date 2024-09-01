@@ -3,7 +3,6 @@ El desarrollo de una solución que permita extraer y procesar datos para aliment
 <br>
 ![Arquitectura de la base de datos](/images/arquitectura_bbdd.JPG)
 
-<br>
 A continuación, se describen las principales entidades y sus relaciones:
 
 - **Clientes:** Se registran los datos básicos de cada cliente, como nombre, teléfono, dirección y país.
@@ -14,7 +13,7 @@ A continuación, se describen las principales entidades y sus relaciones:
 - **Facturación:** Por cada orden de venta se genera una factura, la cual incluye la fecha de emisión, el monto total, la fecha de vencimiento y el estado de la factura (pagada, pendiente, vencida).
 
 
-## Enfoque Metodológico
+## <br>Enfoque Metodológico
 Consideraciones previas para la resolución:
 - Las consultas están diseñadas para ejecutarse en Google Cloud Platform, considerando la sintaxis específica de este entorno.
 - Todas los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
@@ -28,10 +27,11 @@ Para poder inicializar la arquitectura del Data Mart para responder los KPIs pla
 
 <br>
 
-![Arquitectura de la base de datos](/images/data_mart.JPG)
+![Arquitectura de la base de datos](/images/data_mart_diagram.JPG)
 
 <br>
-Para el data mart, se deben ejecutar las siguientes query:
+### Querys para el Data Mart
+Para crear el data mart, se deben ejecutar las siguientes query:
 
 1) Crear la tabla <em>dm_sale_order<em>
 ```
