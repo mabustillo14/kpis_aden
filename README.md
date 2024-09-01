@@ -5,6 +5,7 @@ El desarrollo de una solución que permita extraer y procesar datos para aliment
 
 <br>
 A continuación, se describen las principales entidades y sus relaciones:
+
 - **Clientes:** Se registran los datos básicos de cada cliente, como nombre, teléfono, dirección y país.
 - **Usuarios:** Los empleados que interactúan con el sistema están registrados como usuarios. Cada usuario tiene un nombre, correo electrónico y un rol específico (por ejemplo, vendedor o administrador).
 - **Órdenes de Venta:** Los usuarios pueden generar órdenes de venta en el sistema. Cada orden de venta incluye la fecha de creación, el estado (pendiente, completada, cancelada) y el monto total.
@@ -103,4 +104,26 @@ FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
 
 ## <br>Tablas para responder a los KPIs 
+
+Para construir las tablas que responden a los KPIs planteados, se deben ejecutar las siguientes querys
+5) Detalle de Ventas y Facturas
+```
+/*dm_product*/
+SELECT 
+  `so.order_id`, 
+  `so.order_date`,
+  `so.status` as order_status 
+  `so.total_amount` as order_total_amount, 
+  `i.invoice_id`, 
+  `i.invoice_date`,
+  `i.due_date`,
+  `i.total_amount` AS invoice_total_amount,
+  `i.status_invoice`
+FROM 
+    `<data_mart>.<dataset>.dm_sale_order` so
+JOIN 
+    `<data_mart>.<dataset>.dm_invoice` i 
+ON 
+    so.order_id = i.order_id;
+```
 
