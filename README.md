@@ -16,14 +16,14 @@ A continuación, se describen las principales entidades y sus relaciones:
 
 
 ## <br>🔧 Enfoque Metodológico 
-- Las consultas están diseñadas para ejecutarse en Google Cloud Platform, considerando la sintaxis específica de este entorno.
+- Las consultas están diseñadas para ejecutarse en **Google Cloud Platform > BigQuery**, considerando la sintaxis específica de este entorno.
 - Todas los datasets proporcionados están almacenadas dentro de la base de datos `<dataset_input>` del proyecto denominado `<proyect_input>` .
 - En algunos casos se ha utilizado la **base de datos pública Northwind** como referencia para ilustrar los resultados esperados, simulando situaciones en las que se cuenta con datos disponibles.
-- Todas las soluciones se han implementado utilizando SQL.
+- Todas las soluciones se han implementado utilizando **SQL**.
 
 ## <br>💡 DATA MART 
 - Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyecto `<data_mart>`.
-- Se considero un ***esquema de copo de nieve*** para la arquitectura del Data Mar Data Mart:
+- Se considero un ***esquema de copo de nieve*** para la arquitectura del Data Mart:
 
 <br>
 
@@ -79,7 +79,7 @@ FROM `<proyect_input>.<dataset_input>.PAYMENT`
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` as
 SELECT
   `customer_id`,
-  `name`,
+  `name` as customer_name,
 FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 ```
 
@@ -87,7 +87,9 @@ FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 ```
 /*dm_product*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` as
-SELECT customer_id, name
+SELECT
+  customer_id,
+  name as product_name
 FROM `<proyect_input>.<dataset_input>.PRODUCT`
 ```
 
@@ -101,12 +103,15 @@ Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyect
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_products` as
 SELECT 
     p.product_id,
-    p.name AS product_name,
+    p.product_name,
     COUNT(so.order_id) AS total_sales,
     SUM(so.total_amount) AS total_sales_amount
-FROM `<data_mart>.<dataset>.dm_sale_order` so
-INNER JOIN `<data_mart>.<dataset>.dm_invoice` i ON i.order_id = so.order_id
-INNER JOIN `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
+FROM
+  `<data_mart>.<dataset>.dm_sale_order` so
+INNER JOIN
+  `<data_mart>.<dataset>.dm_invoice` i ON i.order_id = so.order_id
+INNER JOIN
+  `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
 GROUP BY p.product_id
 HAVING so.status = 'completada'
 ORDER BY total_sales_amount desc, total_sales desc
@@ -127,9 +132,12 @@ SELECT
     SUM(IFNULL(p.amount, 0)) AS total_paid_amount,
     so.total_amount - SUM(IFNULL(p.amount, 0)) AS unpaid_amount,
     i.status_invoice AS invoice_status
-FROM `<data_mart>.<dataset>.dm_sale_order` so
-LEFT JOIN `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id
-LEFT JOIN `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
+FROM
+  `<data_mart>.<dataset>.dm_sale_order` so
+LEFT JOIN
+  `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id
+LEFT JOIN
+  `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
 GROUP BY so.order_id
 ```
 
@@ -159,7 +167,7 @@ GROUP BY
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.user_sales_ranking` as
 SELECT 
     c.user_id,
-    c.name AS user_name,
+    c.customer_name,
     SUM(IFNULL(so.order_id, 0)) AS total_sales,
     SUM(IFNULL(so.total_amount, 0)) AS total_revenue
 FROM
