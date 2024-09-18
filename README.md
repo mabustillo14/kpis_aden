@@ -39,13 +39,13 @@ Para crear el data mart, se deben ejecutar las siguientes query:
 /*dm_sale_order*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_sale_order` as
 SELECT
-  `order_id`,
-  `user_id`,
-  `order_date`,
-  `status` as order_status,
-  `total_amount`,
-  `invoice_id`,
-FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
+  order.order_id,
+  order.user_id,
+  order.order_date,
+  order.status as order_status,
+  order.total_amount,
+  order.invoice_id
+FROM `<proyect_input>.<dataset_input>.SALE_ORDER` AS order
 ```
 
 2) Crear la tabla ***dm_invoice***
@@ -53,14 +53,14 @@ FROM `<proyect_input>.<dataset_input>.SALE_ORDER`
 /*dm_invoice*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_invoice` as
 SELECT
-  `invoice_id`,
-  `invoice_date`,
-  `total_amount`,
-  `due_date`,
-  `status_invoice`,
-  `product_id`,
-  `payment_id`,
-FROM `<proyect_input>.<dataset_input>.INVOICE`
+  invoice.invoice_id,
+  invoice.invoice_date,
+  invoice.total_amount,
+  invoice.due_date,
+  invoice.status_invoice,
+  invoice.product_id,
+  invoice.payment_id,
+FROM `<proyect_input>.<dataset_input>.INVOICE` AS invoice
 ```
 
 3) Crear la tabla ***dm_payment***
@@ -68,10 +68,10 @@ FROM `<proyect_input>.<dataset_input>.INVOICE`
 /*dm_payment*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_payment` as
 SELECT
-  `invoice_id`,
-  `amount_paid`,
-  `status_payment`
-FROM `<proyect_input>.<dataset_input>.PAYMENT`
+  payment.invoice_id,
+  payment.amount_paid,
+  payment.status_payment
+FROM `<proyect_input>.<dataset_input>.PAYMENT` AS payment
 ```
 
 4) Crear la tabla ***dm_customer***
@@ -79,9 +79,9 @@ FROM `<proyect_input>.<dataset_input>.PAYMENT`
 /*dm_customer*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_customer` as
 SELECT
-  `customer_id`,
-  `name` as customer_name,
-FROM `<proyect_input>.<dataset_input>.CUSTOMER`
+  customer.customer_id,
+  customer.name as customer_name,
+FROM `<proyect_input>.<dataset_input>.CUSTOMER` AS customer
 ```
 
 5) Crear la tabla ***dm_product***
@@ -89,9 +89,9 @@ FROM `<proyect_input>.<dataset_input>.CUSTOMER`
 /*dm_product*/
 CREATE OR REPLACE TABLE `<data_mart>.<dataset>.dm_product` as
 SELECT
-  product_id,
-  name as product_name
-FROM `<proyect_input>.<dataset_input>.PRODUCT`
+  product.product_id,
+  product.name as product_name
+FROM `<proyect_input>.<dataset_input>.PRODUCT` AS product
 ```
 
 ## <br>📊 KPIs 
@@ -103,19 +103,19 @@ Los dataset estarán alojadas en la base de datos `<dataset>` dentro del proyect
 /*sales_products*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_products` as
 SELECT 
-    p.product_id,
-    p.product_name,
-    COUNT(so.order_id) AS total_sales,
-    SUM(so.total_amount) AS total_sales_amount
+    dmproduct.product_id,
+    dmproduct.product_name,
+    COUNT(dmsaleorder.order_id) AS total_sales,
+    SUM(dmsaleorder.total_amount) AS total_sales_amount
 FROM
-  `<data_mart>.<dataset>.dm_sale_order` so
+  `<data_mart>.<dataset>.dm_sale_order` AS dmsaleorder
 INNER JOIN
-  `<data_mart>.<dataset>.dm_invoice` i ON i.order_id = so.order_id
+  `<data_mart>.<dataset>.dm_invoice` AS dminvoice ON dminvoice.order_id = dmsaleorder.order_id
 INNER JOIN
-  `<data_mart>.<dataset>.dm_product` p ON p.product_id = i.product_id
-GROUP BY p.product_id
-HAVING so.order_status = 'completada'
-ORDER BY total_sales_amount desc, total_sales desc
+  `<data_mart>.<dataset>.dm_product` AS dmproduct ON dmproduct.product_id = dminvoice.product_id
+GROUP BY dmproduct.product_id
+HAVING dmsaleorder.order_status = 'completada'
+ORDER BY SUM(dmsaleorder.total_amount) desc, COUNT(dmsaleorder.order_id) desc
 ```
  Output esperado: <br>
  ![output_sales_products](/images/output_sales_products.JPG)
@@ -127,19 +127,19 @@ ORDER BY total_sales_amount desc, total_sales desc
 /*invoice_payments*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.invoice_payments` as
 SELECT 
-    so.order_id,
-    i.invoice_id
-    so.total_amount AS total_sales_amount,
-    SUM(IFNULL(p.amount_paid, 0)) AS total_paid_amount,
-    so.total_amount - SUM(IFNULL(p.amount, 0)) AS unpaid_amount,
-    i.status_invoice AS invoice_status
+    dmsaleorder.order_id,
+    dminvoice.invoice_id
+    dmsaleorder.total_amount AS total_sales_amount,
+    SUM(IFNULL(dmpayment.amount_paid, 0)) AS total_paid_amount,
+    dmsaleorder.total_amount - SUM(IFNULL(dmpayment.amount, 0)) AS unpaid_amount,
+    dminvoice.status_invoice AS invoice_status
 FROM
-  `<data_mart>.<dataset>.dm_sale_order` so
+  `<data_mart>.<dataset>.dm_sale_order` AS dmsaleorder
 LEFT JOIN
-  `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id
+  `<data_mart>.<dataset>.dm_invoice` AS dminvoice ON dmsaleorder.order_id = dminvoice.order_id
 LEFT JOIN
-  `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
-GROUP BY so.order_id
+  `<data_mart>.<dataset>.dm_payment` AS dmpayment ON dminvoice.invoice_id = dmpayment.invoice_id
+GROUP BY dmsaleorder.order_id
 ```
 
 
@@ -149,16 +149,16 @@ GROUP BY so.order_id
 /*sales_payments*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_payments` as
 SELECT 
-  i.invoice_id,
-  i.status_invoice, 
-  SUM(i.total_amount) AS total_invoice,
-  SUM(IFNULL(p.amount_paid, 0)) AS total_paid
+  dminvoice.invoice_id,
+  dminvoice.status_invoice, 
+  SUM(dminvoice.total_amount) AS total_invoice,
+  SUM(IFNULL(dmpayment.amount_paid, 0)) AS total_paid
 FROM 
-    `<data_mart>.<dataset>.dm_invoice` i
+    `<data_mart>.<dataset>.dm_invoice` AS dminvoice
 LEFT JOIN 
-    `<data_mart>.<dataset>.dm_payment` p ON i.invoice_id = p.invoice_id
+    `<data_mart>.<dataset>.dm_payment` AS dmpayment ON dminvoice.invoice_id = dmpayment.invoice_id
 GROUP BY 
-    i.status_invoice;
+    dminvoice.status_invoice;
 ```
 
 4) **Ranking de Usuarios por Ventas:** Determinar qué usuarios han generado la mayor cantidad de ventas.
@@ -167,16 +167,16 @@ GROUP BY
 /*user_sales_ranking*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.user_sales_ranking` as
 SELECT 
-    c.user_id,
-    c.customer_name,
-    SUM(IFNULL(so.order_id, 0)) AS total_sales,
-    SUM(IFNULL(so.total_amount, 0)) AS total_revenue
+    dmcustoner.user_id,
+    dmcustoner.customer_name,
+    SUM(IFNULL(dmsaleorder.order_id, 0)) AS total_sales,
+    SUM(IFNULL(dmsaleorder.total_amount, 0)) AS total_revenue
 FROM
-  `<data_mart>.<dataset>.dm_customer` c
+  `<data_mart>.<dataset>.dm_customer` AS dmcustoner
 LEFT JOIN
-  sale_order so ON c.user_id = so.user_id
-GROUP BY c.user_id
-ORDER BY SUM(IFNULL(so.total_amount, 0)) desc
+  `<data_mart>.<dataset>.dm_sale_order` AS dmsaleorder ON dmcustoner.user_id = dmsaleorder.user_id
+GROUP BY dmcustoner.user_id
+ORDER BY SUM(IFNULL(dmsaleorder.total_amount, 0)) desc
 ```
 
 Output esperado: <br>
@@ -188,19 +188,19 @@ Output esperado: <br>
 /*sales_invoices_detail*/
 CREATE OR REPLACE TABLE `<data_kpis>.<dataset>.sales_invoices_detail` as
 SELECT 
-  so.order_id, 
-  so.order_date,
-  so.status as order_status 
-  so.total_amount as order_total_amount, 
-  i.invoice_id, 
-  i.invoice_date,
-  i.due_date,
-  i.total_amount AS invoice_total_amount,
-  i.status_invoice,
+  dmsaleorder.order_id, 
+  dmsaleorder.order_date,
+  dmsaleorder.status as order_status 
+  dmsaleorder.total_amount as order_total_amount, 
+  dminvoice.invoice_id, 
+  dminvoice.invoice_date,
+  dminvoice.due_date,
+  dminvoice.total_amount AS invoice_total_amount,
+  dminvoice.status_invoice,
 FROM 
-    `<data_mart>.<dataset>.dm_sale_order` so
+    `<data_mart>.<dataset>.dm_sale_order` AS dmsaleorder
 JOIN 
-    `<data_mart>.<dataset>.dm_invoice` i ON so.order_id = i.order_id;
+    `<data_mart>.<dataset>.dm_invoice` AS dminvoice ON dmsaleorder.order_id = dminvoice.order_id;
 ```
 
 ## Documentación
